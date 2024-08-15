@@ -66,12 +66,12 @@ TIM_HandleTypeDef htim6;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-const float a0 = PI/180*45;
-const float a1 = PI/180*135;
-const float a2 = PI/180*225;
-const float a3 = PI/180*315;
+const float a0 = PI/180*51;
+const float a1 = PI/180*129;
+const float a2 = PI/180*231;
+const float a3 = PI/180*309;
 const float r = 0.03;
-const float R = 0.20;
+const float R = 0.247;
 
 
 FDCAN_TxHeaderTypeDef TxHeader;
