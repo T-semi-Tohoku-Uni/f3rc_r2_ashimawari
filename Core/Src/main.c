@@ -110,39 +110,7 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(htim == &htim6){
 
-		for (int i=0; i<=3; i++){
-			robomas[i].hensa = robomas[i].trgVel - robomas[i].actVel;
-			if (robomas[i].hensa >= 1000) robomas[i].hensa = 1000;
-			else if (robomas[i].hensa <= -1000) robomas[i].hensa = -1000;
-			float d = (robomas[i].actVel - robomas[i].p_actVel) / 0.001;
-			robomas[i].ind += robomas[i].hensa*0.1;
-			if (d >= 30000) d = 30000;
-			else if (d <= -30000) d = -30000;
-			if (robomas[i].ind >= 10000) robomas[i].ind = 10000;
-			else if (robomas[i].ind <= -10000) robomas[i].ind = -10000;
-
-
-			float t = k_p*robomas[i].hensa;
-			if (t>=10000) t = 10000;
-			else if (t<=-10000) t = -10000;
-			robomas[i].cu = (int16_t)(t+k_i*robomas[i].ind+k_d*d);
-			if (robomas[i].cu <= -10000) robomas[i].cu = -10000;
-			else if (robomas[i].cu >= 10000) robomas[i].cu = 10000;
-
-
-			TxData_motor[i*2] = (robomas[i].cu) >> 8;
-			TxData_motor[i*2+1] = (uint8_t)((robomas[i].cu) & 0xff);
-			robomas[i].p_actVel = robomas[i].actVel;
-		}
-		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan3, &TxHeader_motor, TxData_motor) != HAL_OK){
-			printf("addmassage is error\r\n");
-			Error_Handler();
-		}
-	}
-}
 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs){
 	if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET) {
@@ -276,6 +244,40 @@ void omni_calc(float theta,float vx,float vy,float omega,float *w0,float *w1,flo
 	*w1 = (arr[1][0] * v[0] + arr[1][1] * v[1] + arr[1][2] * v[2]) / r;
 	*w2 = (arr[2][0] * v[0] + arr[2][1] * v[1] + arr[2][2] * v[2]) / r;
 	*w3 = (arr[3][0] * v[0] + arr[3][1] * v[1] + arr[3][2] * v[2]) / r;
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if(htim == &htim6){
+
+		for (int i=0; i<=3; i++){
+			robomas[i].hensa = robomas[i].trgVel - robomas[i].actVel;
+			if (robomas[i].hensa >= 1000) robomas[i].hensa = 1000;
+			else if (robomas[i].hensa <= -1000) robomas[i].hensa = -1000;
+			float d = (robomas[i].actVel - robomas[i].p_actVel) / 0.001;
+			robomas[i].ind += robomas[i].hensa*0.1;
+			if (d >= 30000) d = 30000;
+			else if (d <= -30000) d = -30000;
+			if (robomas[i].ind >= 10000) robomas[i].ind = 10000;
+			else if (robomas[i].ind <= -10000) robomas[i].ind = -10000;
+
+
+			float t = k_p*robomas[i].hensa;
+			if (t>=10000) t = 10000;
+			else if (t<=-10000) t = -10000;
+			robomas[i].cu = (int16_t)(t+k_i*robomas[i].ind+k_d*d);
+			if (robomas[i].cu <= -10000) robomas[i].cu = -10000;
+			else if (robomas[i].cu >= 10000) robomas[i].cu = 10000;
+
+
+			TxData_motor[i*2] = (robomas[i].cu) >> 8;
+			TxData_motor[i*2+1] = (uint8_t)((robomas[i].cu) & 0xff);
+			robomas[i].p_actVel = robomas[i].actVel;
+		}
+		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan3, &TxHeader_motor, TxData_motor) != HAL_OK){
+			printf("addmassage is error\r\n");
+			Error_Handler();
+		}
+	}
 }
 
 int _write(int file, char *ptr, int len)
