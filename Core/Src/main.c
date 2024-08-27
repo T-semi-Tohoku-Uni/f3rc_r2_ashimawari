@@ -145,7 +145,15 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 		if (RxHeader.Identifier == 0x300) {
 			int16_t Vel_x = (int16_t)((RxData_motor[0] << 8) | RxData_motor[1]);
 			int16_t Vel_y = (int16_t)((RxData_motor[2] << 8) | RxData_motor[3]);
-
+			omega = (int8_t)RxData[6];
+			float omega_syf = (int16_t)((RxData[4] << 8) | RxData[5]);
+			omega_syf /= 10000;
+			if (omega >= 0) {
+				omega += omega_syf;
+			}
+			else {
+				omega -= omega_syf;
+			}
 
 		}
 	}
