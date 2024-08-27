@@ -94,7 +94,7 @@ motor robomas[4] = {
 };
 
 volatile float k_p = 7, k_i = 0.5, k_d = 0.0001;
-volatile float vx = 0, vy = 0, omega = 0;
+volatile float vx = 0, vy = 0, omega = 0;//m/s, m/s, rad/s
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -142,6 +142,10 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 			Error_Handler();
 		}
 
+		if (RxHeader.Identifier == 0x100) {
+
+		}
+
 		if (RxHeader.Identifier == 0x300) {
 			int16_t Vel_x = (int16_t)((RxData_motor[0] << 8) | RxData_motor[1]);
 			int16_t Vel_y = (int16_t)((RxData_motor[2] << 8) | RxData_motor[3]);
@@ -165,8 +169,8 @@ void FDCAN_RxTxSettings(void){
 	FDCAN_Filter_settings.FilterIndex = 0;
 	FDCAN_Filter_settings.FilterType = FDCAN_FILTER_RANGE;
 	FDCAN_Filter_settings.FilterConfig = FDCAN_FILTER_TO_RXFIFO1;
-	FDCAN_Filter_settings.FilterID1 = 0x200;
-	FDCAN_Filter_settings.FilterID2 = 0x310;
+	FDCAN_Filter_settings.FilterID1 = 0x000;
+	FDCAN_Filter_settings.FilterID2 = 0x600;
 
 	TxHeader.Identifier = 0x000;
 	TxHeader.IdType = FDCAN_STANDARD_ID;
