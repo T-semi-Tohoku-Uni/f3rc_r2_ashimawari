@@ -143,6 +143,10 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 		}
 
 		if (RxHeader.Identifier == 0x300) {
+			int16_t Vel_x = (int16_t)((RxData_motor[0] << 8) | RxData_motor[1]);
+			int16_t Vel_y = (int16_t)((RxData_motor[2] << 8) | RxData_motor[3]);
+
+
 		}
 	}
 }
@@ -248,7 +252,6 @@ void omni_calc(float theta,float vx,float vy,float omega,float *w0,float *w1,flo
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim == &htim6){
-
 		for (int i=0; i<=3; i++){
 			robomas[i].hensa = robomas[i].trgVel - robomas[i].actVel;
 			if (robomas[i].hensa >= 1000) robomas[i].hensa = 1000;
@@ -328,8 +331,13 @@ int main(void)
   FDCAN_RxTxSettings();
   printf("can_main_start\r\n");
   vx = 0;
-  vy = 0;
+  vy = 0.2;
   omega = 0;
+  omni_calc(0 ,vx, vy, omega, &robomas[R_F-1].w, &robomas[L_F-1].w, &robomas[L_B-1].w, &robomas[R_B-1].w);
+  robomas[R_F-1].trgVel = (int)(-1*robomas[R_F-1].w*36*60/(2*PI));
+  robomas[R_B-1].trgVel = (int)(-1*robomas[R_B-1].w*36*60/(2*PI));
+  robomas[L_F-1].trgVel =  (int)(-1*robomas[L_F-1].w*36*60/(2*PI));
+  robomas[L_B-1].trgVel = (int)(-1*robomas[L_B-1].w*36*60/(2*PI));
   HAL_TIM_Base_Start_IT(&htim6);
   /* USER CODE END 2 */
 
@@ -337,8 +345,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  printf("%d\r\n", robomas[2].actVel);
+	  HAL_Delay(10);
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
