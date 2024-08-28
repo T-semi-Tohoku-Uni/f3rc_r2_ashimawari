@@ -95,6 +95,9 @@ motor robomas[4] = {
 
 volatile float k_p = 7, k_i = 0.5, k_d = 0.0001;
 volatile float vx = 0, vy = 0, omega = 0;//m/s, m/s, rad/s
+
+volatile int16_t x = 0, y = 0;
+volatile float theta = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -147,19 +150,44 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 		}
 
 		if (RxHeader.Identifier == 0x300) {
-			int16_t Vel_x = (int16_t)((RxData_motor[0] << 8) | RxData_motor[1]);
-			int16_t Vel_y = (int16_t)((RxData_motor[2] << 8) | RxData_motor[3]);
-			omega = (int8_t)RxData[6];
-			float omega_syf = (int16_t)((RxData[4] << 8) | RxData[5]);
-			omega_syf /= 10000;
-			if (omega >= 0) {
-				omega += omega_syf;
+            //printf("can");
+			float Vel_x = (int16_t)((RxData[0] << 8) | RxData[1]);
+			float Vel_y = (int16_t)((RxData[2] << 8) | RxData[3]);
+			float Omega_i = (int16_t)((RxData[4] << 8) | RxData[5]);
+
+            //printf("vy: %d\r\n",(int)Vel_y);
+			//omega = (int8_t)RxData[6];
+//			float omega_syf = (int16_t)((RxData[4] << 8) | RxData[5]);
+//			omega_syf /= 400;
+//			if (omega >= 0) {
+//				omega += omega_syf;
+//			}
+//			else {
+//				omega -= omega_syf;
+//			}
+//			omega*=1000;
+			vx = Vel_x / 1000;
+			vy = Vel_y / 1000;
+			omega = Omega_i / 400;
+			//printf("%d\r\n", (int)(Omega_i));
+		}
+		if (RxHeader.Identifier == 0x400) {
+			//printf("canlive");
+			x = (int16_t)((RxData[0] << 8) | RxData[1]);
+			y = (int16_t)((RxData[2] << 8) | RxData[3]);
+			theta = (float)(int16_t)((RxData[4] << 8) | RxData[5]);
+			theta /= 400;
+			/*
+			theta = (int8_t)RxData[6];
+			float theta_syf = (int16_t)((RxData[4] << 8) | RxData[5]);
+			theta_syf /= 10000;
+			if (theta >= 0) {
+				theta += theta_syf;
 			}
 			else {
-				omega -= omega_syf;
+				theta -= theta_syf;
 			}
-			vx = Vel_x/1000;
-			vy = Vel_y/1000;
+			printf("%d\r\n",(int)theta*100);*/
 		}
 	}
 }
@@ -265,7 +293,10 @@ void omni_calc(float theta,float vx,float vy,float omega,float *w0,float *w1,flo
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim == &htim6){
-		omni_calc(0 ,vx, vy, omega, &robomas[R_F-1].w, &robomas[L_F-1].w, &robomas[L_B-1].w, &robomas[R_B-1].w);
+		//vx=0;
+		//vy=0.5;
+		//omega=0;
+		omni_calc(theta ,vx, vy, omega, &robomas[R_F-1].w, &robomas[L_F-1].w, &robomas[L_B-1].w, &robomas[R_B-1].w);
 		robomas[R_F-1].trgVel = (int)(-1*robomas[R_F-1].w*36*60/(2*PI));
 		robomas[R_B-1].trgVel = (int)(-1*robomas[R_B-1].w*36*60/(2*PI));
 		robomas[L_F-1].trgVel =  (int)(-1*robomas[L_F-1].w*36*60/(2*PI));
@@ -348,9 +379,6 @@ int main(void)
   printf("can_motor_start\r\n");
   FDCAN_RxTxSettings();
   printf("can_main_start\r\n");
-  vx = 0;
-  vy = 0;
-  omega = 0;
 
   HAL_TIM_Base_Start_IT(&htim6);
   /* USER CODE END 2 */
@@ -359,7 +387,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  printf("%d\r\n", robomas[2].actVel);
+	  //printf("%d.%d\r\n", (int)theta, (int)(400*theta-(int)theta));
+	  printf("vx:%d vy:%d omega:%d,theta:%d\r\n",(int)vx*100,(int)vy*100,(int)(omega*100), (int)(theta*100));
 	  HAL_Delay(10);
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
