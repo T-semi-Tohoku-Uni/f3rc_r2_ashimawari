@@ -149,7 +149,7 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 
 		}
 
-		if (RxHeader.Identifier == 0x300) {
+		if (RxHeader.Identifier == 0x001) {
             //printf("can");
 			float Vel_x = (int16_t)((RxData[0] << 8) | RxData[1]);
 			float Vel_y = (int16_t)((RxData[2] << 8) | RxData[3]);
